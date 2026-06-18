@@ -8,8 +8,7 @@
     *{margin:0;padding:0;box-sizing:border-box}
     body{font-family:'Microsoft YaHei','Segoe UI',sans-serif;background:#f0f2f5;min-height:100vh}
     .header{background:linear-gradient(135deg,#1a1a2e,#0f3460);color:#fff;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
-    .header h2{font-size:18px}
-    .header span{font-size:13px;opacity:0.9}
+    .header h2{font-size:18px}.header span{font-size:13px;opacity:0.9}
     .header button{background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.3);padding:7px 16px;border-radius:6px;cursor:pointer;font-size:13px}
     .header button:hover{background:rgba(255,255,255,0.25)}
     .container{max-width:1000px;margin:20px auto;padding:0 15px 80px}
@@ -18,43 +17,48 @@
     .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:16px}
     .menu-item{background:#f8f9fc;border-radius:10px;padding:18px;text-align:center;cursor:pointer;border:2px solid transparent;transition:all 0.2s}
     .menu-item:hover{border-color:#0f3460;transform:translateY(-2px)}
-    .menu-item .icon{font-size:30px;margin-bottom:8px}
-    .menu-item .label{font-size:14px;font-weight:500;color:#333}
+    .menu-item .icon{font-size:30px;margin-bottom:8px}.menu-item .label{font-size:14px;font-weight:500;color:#333}
     input,select{width:100%;padding:10px 12px;border:2px solid #e0e0e0;border-radius:8px;font-size:14px;outline:none;transition:all 0.2s}
     input:focus,select:focus{border-color:#0f3460;box-shadow:0 0 0 3px rgba(15,52,96,0.08)}
-    .form-group{margin-bottom:14px}
-    .form-group label{display:block;font-size:13px;color:#555;margin-bottom:5px;font-weight:500}
+    .form-group{margin-bottom:14px}.form-group label{display:block;font-size:13px;color:#555;margin-bottom:5px;font-weight:500}
     .btn{display:inline-block;padding:10px 22px;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.2s}
-    .btn-primary{background:#0f3460;color:#fff}
-    .btn-primary:hover{background:#1a1a4e}
-    .btn-success{background:#28a745;color:#fff}
-    .btn-success:hover{background:#218838}
+    .btn-primary{background:#0f3460;color:#fff}.btn-primary:hover{background:#1a1a4e}
+    .btn-success{background:#28a745;color:#fff}.btn-success:hover{background:#218838}
     .btn-secondary{background:#e0e0e0;color:#333;margin-right:10px}
-    .btn-danger{background:#dc3545;color:#fff}
     .msg{display:none;padding:10px 14px;border-radius:8px;margin-top:10px;font-size:13px}
-    .msg-success{background:#d4edda;color:#155724}
-    .msg-error{background:#f8d7da;color:#721c24}
+    .msg-success{background:#d4edda;color:#155724}.msg-error{background:#f8d7da;color:#721c24}
     table{width:100%;border-collapse:collapse;font-size:13px;min-width:700px}
     th,td{padding:8px 6px;text-align:center;border-bottom:1px solid #eee}
     th{background:#f0f2f5;color:#1a1a2e;font-weight:600;position:sticky;top:0}
-    td input{width:65px;padding:5px;text-align:center;font-size:13px}
-    .changed{background:#fff3cd!important;border-color:#ffc107!important}
     .table-wrap{overflow-x:auto;max-height:60vh;overflow-y:auto}
     .badge{display:inline-block;padding:3px 8px;border-radius:10px;font-size:11px;margin:1px}
-    .badge-weekly{background:#ffeeba;color:#856404}
-    .badge-occasional{background:#cce5ff;color:#004085}
+    .badge-weekly{background:#ffeeba;color:#856404}.badge-occasional{background:#cce5ff;color:#004085}
     .hidden{display:none}
-    .search-box{margin-bottom:14px}
-    .search-results{max-height:200px;overflow-y:auto;border:1px solid #e0e0e0;border-radius:8px;margin-top:4px}
+    .search-box{position:relative;margin-bottom:14px}
+    .search-results{position:absolute;width:100%;max-height:200px;overflow-y:auto;background:#fff;border:1px solid #e0e0e0;border-radius:8px;z-index:100;box-shadow:0 4px 12px rgba(0,0,0,0.1)}
     .search-item{padding:10px 14px;cursor:pointer;border-bottom:1px solid #f0f0f0;font-size:13px}
     .search-item:hover{background:#f0f2f5}
+    .activity-list-item{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:#f8f9fc;border-radius:10px;margin-bottom:8px;cursor:pointer;transition:all 0.2s}
+    .activity-list-item:hover{background:#eef1f8}
+    .activity-list-item .act-name{font-weight:500;color:#333}
+    .activity-list-item .act-date{font-size:13px;color:#999}
     @media(max-width:600px){.header h2{font-size:16px}.grid{grid-template-columns:1fr 1fr}}
   </style>
 </head>
-<body>
-<div id="app"></div>
-
+<body><div id="app"></div>
 <script>
+// ==================== 配置 ====================
+const FORM_ID = '1FAIpQLSdkYSRdJmtiXAMt_3boSC5TaVGygn54DOKSqZ0vvEsb5Zwh8Q';
+const FORM_ENTRIES = {
+  activityName: 'entry.365796827',
+  activityType: 'entry.810326803',
+  studentId: 'entry.116714193',
+  participation: 'entry.1016041704',
+  performance: 'entry.1577877755',
+  grooming: 'entry.930342651',
+  teacherId: 'entry.236360045'
+};
+
 const CSV_URLS = {
   teachers: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQhBZhiK2aakbHCd1p8_rhuxPy-pxJ5LXnRZaxGUfeax8fZT_uQvViIzUUd0K78fHd_ZqaxWLgN7o-q/pub?gid=2091082705&single=true&output=csv',
   students: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQhBZhiK2aakbHCd1p8_rhuxPy-pxJ5LXnRZaxGUfeax8fZT_uQvViIzUUd0K78fHd_ZqaxWLgN7o-q/pub?gid=0&single=true&output=csv',
@@ -64,182 +68,255 @@ const CSV_URLS = {
   logs: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQhBZhiK2aakbHCd1p8_rhuxPy-pxJ5LXnRZaxGUfeax8fZT_uQvViIzUUd0K78fHd_ZqaxWLgN7o-q/pub?gid=534242530&single=true&output=csv'
 };
 
-let DATA = { teachers:[], students:[], groupActs:[], dutyActs:[], scoreItems:[], logs:[] };
+let DATA = { teachers:[], students:[], groupActs:[], dutyActs:[], scoreItems:[], logs:[], scoreRecords:[] };
 let currentUser = null;
-let dataLoaded = false;
 
+// ==================== CSV ====================
 function parseCSV(text){
-  const rows = [];
-  let row = [];
-  let cell = '';
-  let inQuotes = false;
+  const rows=[];let row=[],cell='',inQuotes=false;
   for(let i=0;i<text.length;i++){
-    const c = text[i];
-    if(c === '"'){ inQuotes = !inQuotes; continue; }
-    if(c === ',' && !inQuotes){ row.push(cell.trim()); cell = ''; continue; }
-    if(c === '\n' && !inQuotes){ row.push(cell.trim()); rows.push(row); row = []; cell = ''; continue; }
-    if(c === '\r') continue;
-    cell += c;
+    const c=text[i];
+    if(c==='"'){inQuotes=!inQuotes;continue}
+    if(c===','&&!inQuotes){row.push(cell.trim());cell='';continue}
+    if(c==='\n'&&!inQuotes){row.push(cell.trim());rows.push(row);row=[];cell='';continue}
+    if(c==='\r')continue;
+    cell+=c;
   }
-  if(cell) row.push(cell.trim());
-  if(row.length) rows.push(row);
+  if(cell)row.push(cell.trim());
+  if(row.length)rows.push(row);
   return rows;
 }
-
 function rowsToObjects(rows){
-  if(rows.length < 2) return [];
-  const headers = rows[0];
-  const objs = [];
-  for(let i=1;i<rows.length;i++){
-    const obj = {};
-    headers.forEach((h,idx)=>{ obj[h] = (rows[i][idx]||'').trim(); });
-    objs.push(obj);
-  }
-  return objs;
+  if(rows.length<2)return[];
+  const h=rows[0];
+  return rows.slice(1).map(r=>{const o={};h.forEach((x,i)=>{o[x]=(r[i]||'').trim()});return o});
+}
+async function loadData(){
+  const f=async u=>rowsToObjects(parseCSV(await(await fetch(u)).text()));
+  DATA.teachers=await f(CSV_URLS.teachers);
+  DATA.students=await f(CSV_URLS.students);
+  DATA.groupActs=await f(CSV_URLS.groupActs);
+  DATA.dutyActs=await f(CSV_URLS.dutyActs);
+  DATA.scoreItems=await f(CSV_URLS.scoreItems);
+  DATA.logs=await f(CSV_URLS.logs);
 }
 
-async function loadAllData(){
-  try{
-    const fetchCSV = async (url) => {
-      const resp = await fetch(url);
-      const text = await resp.text();
-      return rowsToObjects(parseCSV(text));
-    };
-    DATA.teachers = await fetchCSV(CSV_URLS.teachers);
-    DATA.students = await fetchCSV(CSV_URLS.students);
-    DATA.groupActs = await fetchCSV(CSV_URLS.groupActs);
-    DATA.dutyActs = await fetchCSV(CSV_URLS.dutyActs);
-    DATA.scoreItems = await fetchCSV(CSV_URLS.scoreItems);
-    DATA.logs = await fetchCSV(CSV_URLS.logs);
-    dataLoaded = true;
-    return true;
-  }catch(e){
-    console.error('加载失败:',e);
-    return false;
-  }
-}
+// ==================== 渲染 ====================
+function render(h){document.getElementById('app').innerHTML=h}
 
-function render(html){ document.getElementById('app').innerHTML = html; }
-
+// ==================== 登录 ====================
 function showLogin(msg=''){
-  render(`
-    <div style="display:flex;justify-content:center;align-items:center;min-height:100vh;background:linear-gradient(135deg,#1a1a2e,#0f3460);padding:20px">
-      <div class="card" style="width:100%;max-width:380px">
-        <h3 style="text-align:center">📋 执事团评分系统</h3>
-        <p style="text-align:center;color:#888;margin-bottom:16px">请输入编号和密码</p>
-        <div class="form-group"><label>编号</label><input type="text" id="loginId" placeholder="请输入编号"></div>
-        <div class="form-group"><label>密码</label><input type="password" id="loginPw" placeholder="请输入密码"></div>
-        <button class="btn btn-primary" style="width:100%" onclick="doLogin()">登 录</button>
-        <div class="msg msg-error" id="loginErr">${msg}</div>
-      </div>
-    </div>
-  `);
-  if(msg) document.getElementById('loginErr').style.display = 'block';
-  document.addEventListener('keydown',function(e){ if(e.key==='Enter') doLogin(); });
+  render(`<div style="display:flex;justify-content:center;align-items:center;min-height:100vh;background:linear-gradient(135deg,#1a1a2e,#0f3460);padding:20px">
+    <div class="card" style="width:100%;max-width:380px">
+      <h3 style="text-align:center">📋 执事团评分系统</h3>
+      <p style="text-align:center;color:#888;margin-bottom:16px">请输入编号和密码</p>
+      <div class="form-group"><label>编号</label><input type="text" id="loginId" placeholder="请输入编号"></div>
+      <div class="form-group"><label>密码</label><input type="password" id="loginPw" placeholder="请输入密码"></div>
+      <button class="btn btn-primary" style="width:100%" onclick="doLogin()">登 录</button>
+      <div class="msg msg-error" id="loginErr">${msg}</div>
+    </div></div>`);
+  if(msg)document.getElementById('loginErr').style.display='block';
+  document.addEventListener('keydown',function(e){if(e.key==='Enter')doLogin()});
 }
-
 function doLogin(){
-  const id = document.getElementById('loginId').value.trim();
-  const pw = document.getElementById('loginPw').value.trim();
-  if(!id||!pw){ showLogin('请输入编号和密码'); return; }
-  const teacher = DATA.teachers.find(t => {
-    const keys = Object.keys(t);
-    return t[keys[0]] === id && t[keys[1]] === pw;
-  });
-  if(teacher){
-    const keys = Object.keys(teacher);
-    currentUser = {
-      id: teacher[keys[0]],
-      name: teacher[keys[2]],
-      group: teacher[keys[3]] || ''
-    };
-    showDashboard();
-  } else {
-    showLogin('编号或密码错误');
-  }
+  const id=document.getElementById('loginId').value.trim();
+  const pw=document.getElementById('loginPw').value.trim();
+  if(!id||!pw){showLogin('请输入编号和密码');return}
+  const t=DATA.teachers.find(t=>{const k=Object.keys(t);return t[k[0]]===id&&t[k[1]]===pw});
+  if(t){const k=Object.keys(t);currentUser={id:t[k[0]],name:t[k[2]],group:t[k[3]]||''};showDashboard()}
+  else showLogin('编号或密码错误');
 }
+function logout(){currentUser=null;showLogin()}
 
-function logout(){ currentUser = null; showLogin(); }
-
+// ==================== 仪表盘 ====================
 function showDashboard(){
-  if(!dataLoaded) return;
-  render(`
-    <div class="header">
+  render(`<div class="header">
       <div><h2>📋 执事团评分系统</h2><span>欢迎，${currentUser.name}（${currentUser.id}）</span></div>
       <div><span style="margin-right:12px">🏫 ${currentUser.group}</span><button onclick="logout()">退出</button></div>
     </div>
     <div class="container">
       <div class="grid">
         <div class="menu-item" onclick="showNewActivity()"><div class="icon">➕</div><div class="label">添加活动评分表</div></div>
+        <div class="menu-item" onclick="showScoreForm()"><div class="icon">✏️</div><div class="label">填写评分</div></div>
         <div class="menu-item" onclick="showActivityList()"><div class="icon">📝</div><div class="label">活动评分表记录</div></div>
         <div class="menu-item" onclick="showTotalScore()"><div class="icon">📊</div><div class="label">查看总评分表</div></div>
-        <div class="menu-item" onclick="alert('执委分管理即将上线')"><div class="icon">⭐</div><div class="label">执委分/年资分</div></div>
-        <div class="menu-item" onclick="alert('学期设置即将上线')"><div class="icon">📅</div><div class="label">学期设置</div></div>
       </div>
       <div class="card">
-        <h3>📋 最近活动</h3>
-        <p style="color:#999">${DATA.groupActs.length > 0 ? DATA.groupActs.length+' 个团体活动' : '暂无团体活动'} | ${DATA.dutyActs.length > 0 ? DATA.dutyActs.length+' 个值岗活动' : '暂无值岗活动'}</p>
+        <h3>📋 系统信息</h3>
+        <p style="color:#666">学生总数：${DATA.students.length} | 评分项：${DATA.scoreItems.map(i=>{const k=Object.keys(i);return i[k[0]]}).join('、')}</p>
+        <p style="color:#666">团体活动：${DATA.groupActs.length} 个 | 值岗活动：${DATA.dutyActs.length} 个</p>
       </div>
-    </div>
-  `);
+    </div>`);
 }
 
+// ==================== 添加活动 ====================
 function showNewActivity(){
-  render(`
-    <div class="header"><button onclick="showDashboard()">← 返回</button><h3>添加活动评分表</h3><div></div></div>
+  render(`<div class="header"><button onclick="showDashboard()">← 返回</button><h3>添加活动评分表</h3><div></div></div>
     <div class="container"><div class="card">
-      <div class="form-group"><label>活动类型</label><select id="actType" onchange="toggleType()"><option value="团体">团体活动</option><option value="值岗">值岗</option></select></div>
       <div class="form-group"><label>活动名称</label><input type="text" id="actName" placeholder="例：演讲比赛"></div>
       <div class="form-group"><label>活动日期</label><input type="date" id="actDate"></div>
+      <div class="form-group"><label>活动类型</label><select id="actType"><option value="团体活动">团体活动</option><option value="值岗">值岗</option></select></div>
       <div class="form-group hidden" id="dutyGroupDiv"><label>值岗组别</label><select id="dutyGroup"><option value="">请选择</option><option value="行政组">行政组</option><option value="总务组">总务组</option></select></div>
-      <button class="btn btn-primary" onclick="createActivity()">创建评分表</button>
-      <div class="msg msg-success" id="successMsg"></div><div class="msg msg-error" id="errorMsg"></div>
-    </div></div>
-  `);
-}
-
-function toggleType(){ document.getElementById('dutyGroupDiv').classList.toggle('hidden', document.getElementById('actType').value !== '值岗'); }
-function createActivity(){ showMsg('success','活动创建成功！（演示模式）'); setTimeout(()=>showDashboard(),1500); }
-function showMsg(type,text){ const el=document.getElementById(type+'Msg'); if(el){el.textContent=text;el.style.display='block';setTimeout(()=>{el.style.display='none'},2000);} }
-
-function showActivityList(){
-  render(`
-    <div class="header"><button onclick="showDashboard()">← 返回</button><h3>活动评分表记录</h3><div></div></div>
-    <div class="container"><div class="card"><p style="color:#999">暂无活动评分表</p></div></div>
-  `);
-}
-
-function showTotalScore(){
-  const items = DATA.scoreItems;
-  const students = DATA.students;
-  let html = `
-    <div class="header"><button onclick="showDashboard()">← 返回</button><h3>📊 总评分表 - ${currentUser.group}</h3><div></div></div>
-    <div class="container"><div class="card">
-      <p style="margin-bottom:12px;color:#666">学生总数：${students.length} | 评分项：${items.map(i=>{const k=Object.keys(i);return i[k[0]]}).join('、')}</p>
-      <div class="table-wrap"><table><thead><tr><th>学号</th><th>姓名</th><th>班级</th><th>职位</th>`;
-  items.forEach(i=>{ const k=Object.keys(i); html += `<th>${i[k[0]]}(${i[k[1]]})</th>`; });
-  html += `<th>值岗</th></tr></thead><tbody>`;
-  students.forEach(s=>{
-    const sKeys = Object.keys(s);
-    html += `<tr><td>${s[sKeys[0]]||''}</td><td>${s[sKeys[1]]||''}</td><td>${s[sKeys[3]]||''}</td><td>${s[sKeys[4]]||''}</td>`;
-    items.forEach(()=>{ html += `<td>-</td>`; });
-    let badges = '';
-    if(s[sKeys[8]] === '是') badges += '<span class="badge badge-weekly">每周值岗</span>';
-    if(s[sKeys[9]] === '是') badges += '<span class="badge badge-occasional">偶尔值岗</span>';
-    html += `<td>${badges||'-'}</td></tr>`;
+      <button class="btn btn-primary" onclick="startScoring()">创建并开始评分</button>
+      <div class="msg msg-success" id="successMsg"></div>
+    </div></div>`);
+  document.getElementById('actType').addEventListener('change',function(){
+    document.getElementById('dutyGroupDiv').classList.toggle('hidden',this.value!=='值岗');
   });
-  html += `</tbody></table></div></div></div>`;
+}
+function startScoring(){
+  const name=document.getElementById('actName').value.trim();
+  const date=document.getElementById('actDate').value;
+  const type=document.getElementById('actType').value;
+  const dg=type==='值岗'?document.getElementById('dutyGroup').value:'';
+  if(!name||!date){alert('请填写活动名称和日期');return}
+  if(type==='值岗'&&!dg){alert('请选择值岗组别');return}
+  currentActivity={name:type==='值岗'?name+'(值岗-'+dg+')':name,date,type};
+  showScoreForm();
+}
+
+// ==================== 评分表单（模糊搜索版） ====================
+let currentActivity=null;
+function showScoreForm(){
+  const actName=currentActivity?currentActivity.name:'';
+  const actType=currentActivity?currentActivity.type:'';
+  const students=DATA.students;
+  const items=DATA.scoreItems;
+
+  let scoreInputs='';
+  items.forEach((it,i)=>{
+    const k=Object.keys(it);
+    const max=parseFloat(it[k[1]])||30;
+    scoreInputs+=`<div class="form-group"><label>${it[k[0]]}（满分${max}）</label><input type="number" id="score${i}" min="0" max="${max}" step="0.5" value="0"></div>`;
+  });
+
+  render(`<div class="header"><button onclick="showDashboard()">← 返回</button><h3>填写评分${actName?' - '+actName:''}</h3><div></div></div>
+    <div class="container"><div class="card">
+      <p style="margin-bottom:12px;color:#666">活动：${actName||'未选择'} | 类型：${actType||'-'} | 老师：${currentUser.name}</p>
+      <div class="form-group"><label>🔍 搜索学生（学号/姓名/拼音/首拼）</label>
+        <div class="search-box"><input type="text" id="searchInput" placeholder="输入学号、姓名或拼音搜索..." autocomplete="off">
+          <div class="search-results hidden" id="searchResults"></div>
+        </div>
+      </div>
+      <div id="selectedStudent" style="margin-bottom:12px;padding:12px;background:#e8f0fe;border-radius:8px;font-size:14px;display:none"></div>
+      ${scoreInputs}
+      <button class="btn btn-success" id="submitBtn" disabled onclick="submitScore()">✅ 提交评分</button>
+      <div class="msg msg-success" id="successMsg"></div>
+      <div class="msg msg-error" id="errorMsg"></div>
+    </div></div>`);
+
+  let selectedStudent=null;
+  const searchInput=document.getElementById('searchInput');
+  const searchResults=document.getElementById('searchResults');
+  const selectedDiv=document.getElementById('selectedStudent');
+  const submitBtn=document.getElementById('submitBtn');
+
+  searchInput.addEventListener('input',function(){
+    const kw=this.value.trim().toLowerCase();
+    if(!kw){searchResults.classList.add('hidden');return}
+    const results=students.filter(s=>{
+      const k=Object.keys(s);
+      const str=[s[k[0]],s[k[1]],s[k[2]],s[k[5]],s[k[6]],s[k[7]]].join(' ').toLowerCase();
+      return str.includes(kw);
+    });
+    if(results.length===0){searchResults.classList.add('hidden');return}
+    searchResults.innerHTML=results.map(s=>{
+      const k=Object.keys(s);
+      return `<div class="search-item" data-id="${s[k[0]]}">${s[k[0]]} - ${s[k[1]]} (${s[k[3]]}) | ${s[k[4]]}</div>`;
+    }).join('');
+    searchResults.classList.remove('hidden');
+  });
+
+  searchResults.addEventListener('click',function(e){
+    const item=e.target.closest('.search-item');
+    if(!item)return;
+    const sid=item.dataset.id;
+    const s=students.find(s=>{const k=Object.keys(s);return s[k[0]]===sid});
+    if(s){
+      selectedStudent=s;
+      const k=Object.keys(s);
+      let badges='';
+      if(s[k[8]]==='是')badges+='<span class="badge badge-weekly">每周值岗</span> ';
+      if(s[k[9]]==='是')badges+='<span class="badge badge-occasional">偶尔值岗</span> ';
+      selectedDiv.innerHTML=`✅ 已选择：<b>${s[k[0]]} - ${s[k[1]]}</b> | 班级：${s[k[3]]} | 职位：${s[k[4]]} ${badges}`;
+      selectedDiv.style.display='block';
+      submitBtn.disabled=false;
+      searchInput.value=`${s[k[0]]} - ${s[k[1]]}`;
+      searchResults.classList.add('hidden');
+    }
+  });
+
+  document.addEventListener('click',function(e){if(!e.target.closest('.search-box'))searchResults.classList.add('hidden')});
+}
+
+function submitScore(){
+  if(!currentActivity){showMsg('error','请先选择活动');return}
+  const searchInput=document.getElementById('searchInput');
+  const sid=searchInput.value.split(' - ')[0].trim();
+  const items=DATA.scoreItems;
+  const scores=[];
+  for(let i=0;i<items.length;i++){scores.push(document.getElementById('score'+i).value)}
+
+  const formData=new FormData();
+  formData.append(FORM_ENTRIES.activityName,currentActivity.name);
+  formData.append(FORM_ENTRIES.activityType,currentActivity.type);
+  formData.append(FORM_ENTRIES.studentId,sid);
+  formData.append(FORM_ENTRIES.participation,scores[0]||'0');
+  formData.append(FORM_ENTRIES.performance,scores[1]||'0');
+  formData.append(FORM_ENTRIES.grooming,scores[2]||'0');
+  formData.append(FORM_ENTRIES.teacherId,currentUser.id);
+
+  fetch(`https://docs.google.com/forms/d/e/${FORM_ID}/formResponse`,{method:'POST',body:formData,mode:'no-cors'})
+  .then(()=>{
+    showMsg('success','✅ 评分提交成功！');
+    document.getElementById('searchInput').value='';
+    document.getElementById('selectedStudent').style.display='none';
+    document.getElementById('submitBtn').disabled=true;
+    items.forEach((_,i)=>{document.getElementById('score'+i).value='0'});
+  }).catch(()=>{showMsg('error','提交失败，请重试')});
+}
+
+function showMsg(type,text){
+  const el=document.getElementById(type+'Msg');
+  if(el){el.textContent=text;el.style.display='block';setTimeout(()=>el.style.display='none',2000)}
+}
+
+// ==================== 活动列表 ====================
+function showActivityList(){
+  render(`<div class="header"><button onclick="showDashboard()">← 返回</button><h3>活动评分表记录</h3><div></div></div>
+    <div class="container"><div class="card">
+      <h3>📋 团体活动</h3>
+      <div id="groupActList">${DATA.groupActs.length?DATA.groupActs.map(a=>{const k=Object.keys(a);return`<div class="activity-list-item"><span class="act-name">${a[k[0]]}</span><span class="act-date">${a[k[1]]||''}</span></div>`}).join(''):'<p style="color:#999">暂无团体活动</p>'}</div>
+      <h3 style="margin-top:20px">🔄 值岗活动</h3>
+      <div id="dutyActList">${DATA.dutyActs.length?DATA.dutyActs.map(a=>{const k=Object.keys(a);return`<div class="activity-list-item"><span class="act-name">${a[k[0]]}</span><span class="act-date">${a[k[1]]||''}</span></div>`}).join(''):'<p style="color:#999">暂无值岗活动</p>'}</div>
+    </div></div>`);
+}
+
+// ==================== 总评分 ====================
+function showTotalScore(){
+  const items=DATA.scoreItems;
+  const students=DATA.students;
+  let html=`<div class="header"><button onclick="showDashboard()">← 返回</button><h3>📊 总评分表 - ${currentUser.group}</h3><div></div></div>
+    <div class="container"><div class="card">
+      <p style="margin-bottom:12px;color:#666">学生总数：${students.length} | 评分项：${items.map(i=>{const k=Object.keys(i);return i[k[0]]+'('+i[k[1]]+')'}).join('、')}</p>
+      <div class="table-wrap"><table><thead><tr><th>学号</th><th>姓名</th><th>班级</th><th>职位</th>`;
+  items.forEach(i=>{const k=Object.keys(i);html+=`<th>${i[k[0]]}</th>`});
+  html+=`<th>值岗标识</th></tr></thead><tbody>`;
+  students.forEach(s=>{
+    const k=Object.keys(s);
+    html+=`<tr><td>${s[k[0]]||''}</td><td>${s[k[1]]||''}</td><td>${s[k[3]]||''}</td><td>${s[k[4]]||''}</td>`;
+    items.forEach(()=>html+=`<td>-</td>`);
+    let badges='';
+    if(s[k[8]]==='是')badges+='<span class="badge badge-weekly">每周值岗</span> ';
+    if(s[k[9]]==='是')badges+='<span class="badge badge-occasional">偶尔值岗</span> ';
+    html+=`<td>${badges||'-'}</td></tr>`;
+  });
+  html+=`</tbody></table></div></div></div>`;
   render(html);
 }
 
-async function init(){
-  await loadAllData();
-  if(DATA.teachers.length === 0){
-    render('<div style="text-align:center;padding:60px"><h2>⚠️ 数据加载失败</h2><p>请检查 Google Sheet 是否已正确发布</p></div>');
-    return;
-  }
-  showLogin();
-}
+// ==================== 启动 ====================
+async function init(){await loadData();showLogin()}
 init();
 </script>
 </body>
