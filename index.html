@@ -55,7 +55,6 @@
 <div id="app"></div>
 
 <script>
-// ==================== 全局配置 ====================
 const CSV_URLS = {
   teachers: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQhBZhiK2aakbHCd1p8_rhuxPy-pxJ5LXnRZaxGUfeax8fZT_uQvViIzUUd0K78fHd_ZqaxWLgN7o-q/pub?gid=2091082705&single=true&output=csv',
   students: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQhBZhiK2aakbHCd1p8_rhuxPy-pxJ5LXnRZaxGUfeax8fZT_uQvViIzUUd0K78fHd_ZqaxWLgN7o-q/pub?gid=0&single=true&output=csv',
@@ -69,7 +68,6 @@ let DATA = { teachers:[], students:[], groupActs:[], dutyActs:[], scoreItems:[],
 let currentUser = null;
 let dataLoaded = false;
 
-// ==================== CSV解析 ====================
 function parseCSV(text){
   const rows = [];
   let row = [];
@@ -100,7 +98,6 @@ function rowsToObjects(rows){
   return objs;
 }
 
-// ==================== 加载数据 ====================
 async function loadAllData(){
   try{
     const fetchCSV = async (url) => {
@@ -108,7 +105,6 @@ async function loadAllData(){
       const text = await resp.text();
       return rowsToObjects(parseCSV(text));
     };
-    
     DATA.teachers = await fetchCSV(CSV_URLS.teachers);
     DATA.students = await fetchCSV(CSV_URLS.students);
     DATA.groupActs = await fetchCSV(CSV_URLS.groupActs);
@@ -118,15 +114,13 @@ async function loadAllData(){
     dataLoaded = true;
     return true;
   }catch(e){
-    console.error('数据加载失败:',e);
+    console.error('加载失败:',e);
     return false;
   }
 }
 
-// ==================== 渲染 ====================
 function render(html){ document.getElementById('app').innerHTML = html; }
 
-// ==================== 登录 ====================
 function showLogin(msg=''){
   render(`
     <div style="display:flex;justify-content:center;align-items:center;min-height:100vh;background:linear-gradient(135deg,#1a1a2e,#0f3460);padding:20px">
@@ -148,7 +142,6 @@ function doLogin(){
   const id = document.getElementById('loginId').value.trim();
   const pw = document.getElementById('loginPw').value.trim();
   if(!id||!pw){ showLogin('请输入编号和密码'); return; }
-  // 用列位置匹配：第0列=编号，第1列=密码，第2列=姓名，第3列=负责执事团
   const teacher = DATA.teachers.find(t => {
     const keys = Object.keys(t);
     return t[keys[0]] === id && t[keys[1]] === pw;
@@ -168,7 +161,6 @@ function doLogin(){
 
 function logout(){ currentUser = null; showLogin(); }
 
-// ==================== 控制面板 ====================
 function showDashboard(){
   if(!dataLoaded) return;
   render(`
@@ -192,7 +184,6 @@ function showDashboard(){
   `);
 }
 
-// ==================== 添加活动 ====================
 function showNewActivity(){
   render(`
     <div class="header"><button onclick="showDashboard()">← 返回</button><h3>添加活动评分表</h3><div></div></div>
@@ -206,11 +197,11 @@ function showNewActivity(){
     </div></div>
   `);
 }
+
 function toggleType(){ document.getElementById('dutyGroupDiv').classList.toggle('hidden', document.getElementById('actType').value !== '值岗'); }
 function createActivity(){ showMsg('success','活动创建成功！（演示模式）'); setTimeout(()=>showDashboard(),1500); }
 function showMsg(type,text){ const el=document.getElementById(type+'Msg'); if(el){el.textContent=text;el.style.display='block';setTimeout(()=>{el.style.display='none'},2000);} }
 
-// ==================== 活动列表 ====================
 function showActivityList(){
   render(`
     <div class="header"><button onclick="showDashboard()">← 返回</button><h3>活动评分表记录</h3><div></div></div>
@@ -218,18 +209,17 @@ function showActivityList(){
   `);
 }
 
-// ==================== 总评分 ====================
 function showTotalScore(){
   const items = DATA.scoreItems;
   const students = DATA.students;
   let html = `
     <div class="header"><button onclick="showDashboard()">← 返回</button><h3>📊 总评分表 - ${currentUser.group}</h3><div></div></div>
     <div class="container"><div class="card">
-      <p style="margin-bottom:12px;color:#666">学生总数：${students.length} | 评分项：${items.map(i=>i['细分项']||i['name']).join('、')}</p>
+      <p style="margin-bottom:12px;color:#666">学生总数：${students.length} | 评分项：${items.map(i=>{const k=Object.keys(i);return i[k[0]]}).join('、')}</p>
       <div class="table-wrap"><table><thead><tr><th>学号</th><th>姓名</th><th>班级</th><th>职位</th>`;
-  items.forEach(i=>{ html += `<th>${i['细分项']||i['name']}(${i['满分值']||i['max']})</th>`; });
+  items.forEach(i=>{ const k=Object.keys(i); html += `<th>${i[k[0]]}(${i[k[1]]})</th>`; });
   html += `<th>值岗</th></tr></thead><tbody>`;
-   students.forEach(s=>{
+  students.forEach(s=>{
     const sKeys = Object.keys(s);
     html += `<tr><td>${s[sKeys[0]]||''}</td><td>${s[sKeys[1]]||''}</td><td>${s[sKeys[3]]||''}</td><td>${s[sKeys[4]]||''}</td>`;
     items.forEach(()=>{ html += `<td>-</td>`; });
@@ -242,7 +232,6 @@ function showTotalScore(){
   render(html);
 }
 
-// ==================== 启动 ====================
 async function init(){
   await loadAllData();
   if(DATA.teachers.length === 0){
