@@ -48,10 +48,7 @@
     .search-results{max-height:200px;overflow-y:auto;border:1px solid #e0e0e0;border-radius:8px;margin-top:4px}
     .search-item{padding:10px 14px;cursor:pointer;border-bottom:1px solid #f0f0f0;font-size:13px}
     .search-item:hover{background:#f0f2f5}
-    @media(max-width:600px){
-      .header h2{font-size:16px}
-      .grid{grid-template-columns:1fr 1fr}
-    }
+    @media(max-width:600px){.header h2{font-size:16px}.grid{grid-template-columns:1fr 1fr}}
   </style>
 </head>
 <body>
@@ -59,74 +56,77 @@
 
 <script>
 // ==================== 全局配置 ====================
-const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQhBZhiK2aakbHCd1p8_rhuxPy-pxJ5LXnRZaxGUfeax8fZT_uQvViIzUUd0K78fHd_ZqaxWLgN7o-q/pub?output=csv';
-const SHEET_BASE = 'https://docs.google.com/spreadsheets/d/1wtsvx9JEcbSh7LiqQwKgOCwVk2OlBOv24PxW4KzTWbk';
-const APPSCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxWYOUR_SCRIPT_ID/exec';
+const CSV_URLS = {
+  teachers: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQhBZhiK2aakbHCd1p8_rhuxPy-pxJ5LXnRZaxGUfeax8fZT_uQvViIzUUd0K78fHd_ZqaxWLgN7o-q/pub?gid=2091082705&single=true&output=csv',
+  students: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQhBZhiK2aakbHCd1p8_rhuxPy-pxJ5LXnRZaxGUfeax8fZT_uQvViIzUUd0K78fHd_ZqaxWLgN7o-q/pub?gid=0&single=true&output=csv',
+  groupActs: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQhBZhiK2aakbHCd1p8_rhuxPy-pxJ5LXnRZaxGUfeax8fZT_uQvViIzUUd0K78fHd_ZqaxWLgN7o-q/pub?gid=624459284&single=true&output=csv',
+  dutyActs: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQhBZhiK2aakbHCd1p8_rhuxPy-pxJ5LXnRZaxGUfeax8fZT_uQvViIzUUd0K78fHd_ZqaxWLgN7o-q/pub?gid=1038076707&single=true&output=csv',
+  scoreItems: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQhBZhiK2aakbHCd1p8_rhuxPy-pxJ5LXnRZaxGUfeax8fZT_uQvViIzUUd0K78fHd_ZqaxWLgN7o-q/pub?gid=128245358&single=true&output=csv',
+  logs: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQhBZhiK2aakbHCd1p8_rhuxPy-pxJ5LXnRZaxGUfeax8fZT_uQvViIzUUd0K78fHd_ZqaxWLgN7o-q/pub?gid=534242530&single=true&output=csv'
+};
 
-// 数据缓存
-let allData = { teachers:[], students:[], groupActs:[], dutyActs:[], scoreItems:[], logs:[] };
+let DATA = { teachers:[], students:[], groupActs:[], dutyActs:[], scoreItems:[], logs:[] };
 let currentUser = null;
+let dataLoaded = false;
 
-// ==================== 解析CSV ====================
-function parseCSV(csv){
+// ==================== CSV解析 ====================
+function parseCSV(text){
   const rows = [];
-  let current = '';
+  let row = [];
+  let cell = '';
   let inQuotes = false;
-  for(let c of csv){
+  for(let i=0;i<text.length;i++){
+    const c = text[i];
     if(c === '"'){ inQuotes = !inQuotes; continue; }
-    if(c === ',' && !inQuotes){ current = current.trim(); rows.push(current); current = ''; continue; }
-    if(c === '\n' && !inQuotes){ current = current.trim(); rows.push(current); current = ''; continue; }
+    if(c === ',' && !inQuotes){ row.push(cell.trim()); cell = ''; continue; }
+    if(c === '\n' && !inQuotes){ row.push(cell.trim()); rows.push(row); row = []; cell = ''; continue; }
     if(c === '\r') continue;
-    current += c;
+    cell += c;
   }
-  if(current.trim()) rows.push(current.trim());
+  if(cell) row.push(cell.trim());
+  if(row.length) rows.push(row);
   return rows;
 }
 
-function loadAllData(callback){
-  fetch(SHEET_CSV_URL + '&gid=0')
-    .then(r => r.text())
-    .then(csv => {
-      // 尝试加载所有sheet（通过不同gid）
-      // 由于单个CSV只能获取第一个sheet，这里使用简化的数据结构
-      // 实际使用时需要加载多个gid
-      callback(true);
-    })
-    .catch(e => {
-      console.error('加载失败:', e);
-      callback(false);
-    });
+function rowsToObjects(rows){
+  if(rows.length < 2) return [];
+  const headers = rows[0];
+  const objs = [];
+  for(let i=1;i<rows.length;i++){
+    const obj = {};
+    headers.forEach((h,idx)=>{ obj[h] = (rows[i][idx]||'').trim(); });
+    objs.push(obj);
+  }
+  return objs;
 }
 
-// ==================== 模拟数据（实际使用时替换为API调用） ====================
-function getTeachers(){
-  return [
-    {id:'T01',password:'1234',name:'李老师',group:'联课团'},
-    {id:'T02',password:'5678',name:'王老师',group:'体育团'},
-  ];
+// ==================== 加载数据 ====================
+async function loadAllData(){
+  try{
+    const fetchCSV = async (url) => {
+      const resp = await fetch(url);
+      const text = await resp.text();
+      return rowsToObjects(parseCSV(text));
+    };
+    
+    DATA.teachers = await fetchCSV(CSV_URLS.teachers);
+    DATA.students = await fetchCSV(CSV_URLS.students);
+    DATA.groupActs = await fetchCSV(CSV_URLS.groupActs);
+    DATA.dutyActs = await fetchCSV(CSV_URLS.dutyActs);
+    DATA.scoreItems = await fetchCSV(CSV_URLS.scoreItems);
+    DATA.logs = await fetchCSV(CSV_URLS.logs);
+    dataLoaded = true;
+    return true;
+  }catch(e){
+    console.error('数据加载失败:',e);
+    return false;
+  }
 }
 
-function getStudents(){
-  return [
-    {id:'S001',name:'谢方怡',engName:'Xie Fangyi',className:'联课',position:'主席',fullPinyin:'xiefangyi',firstPinyin:'xfy',engFirst:'xfy',weeklyDuty:true,occasionalDuty:false},
-    {id:'S002',name:'陈妍心',engName:'Chen Yanxin',className:'联课',position:'会员',fullPinyin:'chenyanxin',firstPinyin:'cyx',engFirst:'cyx',weeklyDuty:false,occasionalDuty:true},
-  ];
-}
-
-function getScoreItems(){
-  return [
-    {name:'参与率',max:30},
-    {name:'团内活动参与表现',max:30},
-    {name:'仪容',max:15},
-    {name:'执委',max:10},
-    {name:'年资',max:15},
-  ];
-}
-
-// ==================== 渲染引擎 ====================
+// ==================== 渲染 ====================
 function render(html){ document.getElementById('app').innerHTML = html; }
 
-// ==================== 登录页 ====================
+// ==================== 登录 ====================
 function showLogin(msg=''){
   render(`
     <div style="display:flex;justify-content:center;align-items:center;min-height:100vh;background:linear-gradient(135deg,#1a1a2e,#0f3460);padding:20px">
@@ -148,18 +148,25 @@ function doLogin(){
   const id = document.getElementById('loginId').value.trim();
   const pw = document.getElementById('loginPw').value.trim();
   if(!id||!pw){ showLogin('请输入编号和密码'); return; }
-  const teachers = getTeachers();
-  const teacher = teachers.find(t => t.id === id && t.password === pw);
+  // 查找老师：表头为 编号,密码,姓名(职位),负责执事团
+  const teacher = DATA.teachers.find(t => (t['编号']||t['id']||'') === id && (t['密码']||t['password']||'') === pw);
   if(teacher){
-    currentUser = teacher;
+    currentUser = {
+      id: teacher['编号']||teacher['id'],
+      name: teacher['姓名(职位)']||teacher['姓名']||teacher['name'],
+      group: teacher['负责执事团']||teacher['group']||''
+    };
     showDashboard();
   } else {
     showLogin('编号或密码错误');
   }
 }
 
+function logout(){ currentUser = null; showLogin(); }
+
 // ==================== 控制面板 ====================
 function showDashboard(){
+  if(!dataLoaded) return;
   render(`
     <div class="header">
       <div><h2>📋 执事团评分系统</h2><span>欢迎，${currentUser.name}（${currentUser.id}）</span></div>
@@ -175,107 +182,71 @@ function showDashboard(){
       </div>
       <div class="card">
         <h3>📋 最近活动</h3>
-        <p style="color:#999">暂无活动评分表</p>
+        <p style="color:#999">${DATA.groupActs.length > 0 ? DATA.groupActs.length+' 个团体活动' : '暂无团体活动'} | ${DATA.dutyActs.length > 0 ? DATA.dutyActs.length+' 个值岗活动' : '暂无值岗活动'}</p>
       </div>
     </div>
   `);
-}
-
-function logout(){
-  currentUser = null;
-  showLogin();
 }
 
 // ==================== 添加活动 ====================
 function showNewActivity(){
   render(`
-    <div class="header">
-      <button onclick="showDashboard()">← 返回</button>
-      <h3>添加活动评分表</h3><div></div>
-    </div>
-    <div class="container">
-      <div class="card">
-        <div class="form-group"><label>活动类型</label><select id="actType" onchange="toggleType()"><option value="团体">团体活动</option><option value="值岗">值岗</option></select></div>
-        <div class="form-group"><label>活动名称</label><input type="text" id="actName" placeholder="例：演讲比赛"></div>
-        <div class="form-group"><label>活动日期</label><input type="date" id="actDate"></div>
-        <div class="form-group hidden" id="dutyGroupDiv"><label>值岗组别</label><select id="dutyGroup"><option value="">请选择</option><option value="行政组">行政组</option><option value="总务组">总务组</option></select></div>
-        <button class="btn btn-primary" onclick="createActivity()">创建评分表</button>
-        <div class="msg msg-success" id="successMsg"></div>
-        <div class="msg msg-error" id="errorMsg"></div>
-      </div>
-    </div>
+    <div class="header"><button onclick="showDashboard()">← 返回</button><h3>添加活动评分表</h3><div></div></div>
+    <div class="container"><div class="card">
+      <div class="form-group"><label>活动类型</label><select id="actType" onchange="toggleType()"><option value="团体">团体活动</option><option value="值岗">值岗</option></select></div>
+      <div class="form-group"><label>活动名称</label><input type="text" id="actName" placeholder="例：演讲比赛"></div>
+      <div class="form-group"><label>活动日期</label><input type="date" id="actDate"></div>
+      <div class="form-group hidden" id="dutyGroupDiv"><label>值岗组别</label><select id="dutyGroup"><option value="">请选择</option><option value="行政组">行政组</option><option value="总务组">总务组</option></select></div>
+      <button class="btn btn-primary" onclick="createActivity()">创建评分表</button>
+      <div class="msg msg-success" id="successMsg"></div><div class="msg msg-error" id="errorMsg"></div>
+    </div></div>
   `);
 }
-
-function toggleType(){
-  const type = document.getElementById('actType').value;
-  document.getElementById('dutyGroupDiv').classList.toggle('hidden', type !== '值岗');
-}
-
-function createActivity(){
-  const name = document.getElementById('actName').value.trim();
-  const date = document.getElementById('actDate').value;
-  const type = document.getElementById('actType').value;
-  if(!name) return showMsg('error','请输入活动名称');
-  if(!date) return showMsg('error','请选择日期');
-  if(type==='值岗' && !document.getElementById('dutyGroup').value) return showMsg('error','请选择值岗组别');
-  showMsg('success','活动创建成功！(演示模式)');
-  setTimeout(() => showDashboard(), 1500);
-}
-
-function showMsg(type,text){
-  const el = document.getElementById(type+'Msg');
-  if(!el) return;
-  el.textContent = text;
-  el.style.display = 'block';
-  setTimeout(()=>{el.style.display='none'},2000);
-}
+function toggleType(){ document.getElementById('dutyGroupDiv').classList.toggle('hidden', document.getElementById('actType').value !== '值岗'); }
+function createActivity(){ showMsg('success','活动创建成功！（演示模式）'); setTimeout(()=>showDashboard(),1500); }
+function showMsg(type,text){ const el=document.getElementById(type+'Msg'); if(el){el.textContent=text;el.style.display='block';setTimeout(()=>{el.style.display='none'},2000);} }
 
 // ==================== 活动列表 ====================
 function showActivityList(){
   render(`
-    <div class="header">
-      <button onclick="showDashboard()">← 返回</button>
-      <h3>活动评分表记录</h3><div></div>
-    </div>
-    <div class="container">
-      <div class="card"><p style="color:#999">暂无活动评分表</p></div>
-    </div>
+    <div class="header"><button onclick="showDashboard()">← 返回</button><h3>活动评分表记录</h3><div></div></div>
+    <div class="container"><div class="card"><p style="color:#999">暂无活动评分表</p></div></div>
   `);
 }
 
 // ==================== 总评分 ====================
 function showTotalScore(){
-  const students = getStudents();
-  const items = getScoreItems();
+  const items = DATA.scoreItems;
+  const students = DATA.students;
   let html = `
-    <div class="header">
-      <button onclick="showDashboard()">← 返回</button>
-      <h3>📊 总评分表 - ${currentUser.group}</h3><div></div>
-    </div>
-    <div class="container">
-      <div class="card">
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>学号</th><th>姓名</th><th>班级</th><th>职位</th>`;
-  items.forEach(i => { html += `<th>${i.name}(${i.max})</th>`; });
+    <div class="header"><button onclick="showDashboard()">← 返回</button><h3>📊 总评分表 - ${currentUser.group}</h3><div></div></div>
+    <div class="container"><div class="card">
+      <p style="margin-bottom:12px;color:#666">学生总数：${students.length} | 评分项：${items.map(i=>i['细分项']||i['name']).join('、')}</p>
+      <div class="table-wrap"><table><thead><tr><th>学号</th><th>姓名</th><th>班级</th><th>职位</th>`;
+  items.forEach(i=>{ html += `<th>${i['细分项']||i['name']}(${i['满分值']||i['max']})</th>`; });
   html += `<th>值岗</th></tr></thead><tbody>`;
-  
-  students.forEach(s => {
-    html += `<tr><td>${s.id}</td><td>${s.name}</td><td>${s.className}</td><td>${s.position}</td>`;
-    items.forEach(() => { html += `<td>-</td>`; });
+  students.forEach(s=>{
+    html += `<tr><td>${s['学号']||s['id']||''}</td><td>${s['姓名']||s['name']||''}</td><td>${s['班级']||s['className']||''}</td><td>${s['职位']||s['position']||''}</td>`;
+    items.forEach(()=>{ html += `<td>-</td>`; });
     let badges = '';
-    if(s.weeklyDuty) badges += '<span class="badge badge-weekly">每周值岗</span>';
-    if(s.occasionalDuty) badges += '<span class="badge badge-occasional">偶尔值岗</span>';
+    if(s['每周需值岗之学生'] === '是' || s['weeklyDuty'] === '是') badges += '<span class="badge badge-weekly">每周值岗</span>';
+    if(s['偶尔需值岗之学生'] === '是' || s['occasionalDuty'] === '是') badges += '<span class="badge badge-occasional">偶尔值岗</span>';
     html += `<td>${badges||'-'}</td></tr>`;
   });
-  
   html += `</tbody></table></div></div></div>`;
   render(html);
 }
 
 // ==================== 启动 ====================
-showLogin();
+async function init(){
+  await loadAllData();
+  if(DATA.teachers.length === 0){
+    render('<div style="text-align:center;padding:60px"><h2>⚠️ 数据加载失败</h2><p>请检查 Google Sheet 是否已正确发布</p></div>');
+    return;
+  }
+  showLogin();
+}
+init();
 </script>
 </body>
 </html>
