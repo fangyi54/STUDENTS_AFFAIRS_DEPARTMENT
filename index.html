@@ -148,13 +148,17 @@ function doLogin(){
   const id = document.getElementById('loginId').value.trim();
   const pw = document.getElementById('loginPw').value.trim();
   if(!id||!pw){ showLogin('请输入编号和密码'); return; }
-  // 查找老师：表头为 编号,密码,姓名(职位),负责执事团
-  const teacher = DATA.teachers.find(t => (t['编号']||t['id']||'') === id && (t['密码']||t['password']||'') === pw);
+  // 用列位置匹配：第0列=编号，第1列=密码，第2列=姓名，第3列=负责执事团
+  const teacher = DATA.teachers.find(t => {
+    const keys = Object.keys(t);
+    return t[keys[0]] === id && t[keys[1]] === pw;
+  });
   if(teacher){
+    const keys = Object.keys(teacher);
     currentUser = {
-      id: teacher['编号']||teacher['id'],
-      name: teacher['姓名(职位)']||teacher['姓名']||teacher['name'],
-      group: teacher['负责执事团']||teacher['group']||''
+      id: teacher[keys[0]],
+      name: teacher[keys[2]],
+      group: teacher[keys[3]] || ''
     };
     showDashboard();
   } else {
@@ -225,12 +229,13 @@ function showTotalScore(){
       <div class="table-wrap"><table><thead><tr><th>学号</th><th>姓名</th><th>班级</th><th>职位</th>`;
   items.forEach(i=>{ html += `<th>${i['细分项']||i['name']}(${i['满分值']||i['max']})</th>`; });
   html += `<th>值岗</th></tr></thead><tbody>`;
-  students.forEach(s=>{
-    html += `<tr><td>${s['学号']||s['id']||''}</td><td>${s['姓名']||s['name']||''}</td><td>${s['班级']||s['className']||''}</td><td>${s['职位']||s['position']||''}</td>`;
+   students.forEach(s=>{
+    const sKeys = Object.keys(s);
+    html += `<tr><td>${s[sKeys[0]]||''}</td><td>${s[sKeys[1]]||''}</td><td>${s[sKeys[3]]||''}</td><td>${s[sKeys[4]]||''}</td>`;
     items.forEach(()=>{ html += `<td>-</td>`; });
     let badges = '';
-    if(s['每周需值岗之学生'] === '是' || s['weeklyDuty'] === '是') badges += '<span class="badge badge-weekly">每周值岗</span>';
-    if(s['偶尔需值岗之学生'] === '是' || s['occasionalDuty'] === '是') badges += '<span class="badge badge-occasional">偶尔值岗</span>';
+    if(s[sKeys[8]] === '是') badges += '<span class="badge badge-weekly">每周值岗</span>';
+    if(s[sKeys[9]] === '是') badges += '<span class="badge badge-occasional">偶尔值岗</span>';
     html += `<td>${badges||'-'}</td></tr>`;
   });
   html += `</tbody></table></div></div></div>`;
