@@ -1,11 +1,281 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>执事团评分系统</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Microsoft YaHei','Segoe UI',sans-serif;background:#f0f2f5;min-height:100vh}
+    .header{background:linear-gradient(135deg,#1a1a2e,#0f3460);color:#fff;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+    .header h2{font-size:18px}
+    .header span{font-size:13px;opacity:0.9}
+    .header button{background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.3);padding:7px 16px;border-radius:6px;cursor:pointer;font-size:13px}
+    .header button:hover{background:rgba(255,255,255,0.25)}
+    .container{max-width:1000px;margin:20px auto;padding:0 15px 80px}
+    .card{background:#fff;border-radius:12px;padding:20px;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,0.06)}
+    .card h3{margin-bottom:14px;color:#1a1a2e;font-size:16px}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:16px}
+    .menu-item{background:#f8f9fc;border-radius:10px;padding:18px;text-align:center;cursor:pointer;border:2px solid transparent;transition:all 0.2s}
+    .menu-item:hover{border-color:#0f3460;transform:translateY(-2px)}
+    .menu-item .icon{font-size:30px;margin-bottom:8px}
+    .menu-item .label{font-size:14px;font-weight:500;color:#333}
+    input,select{width:100%;padding:10px 12px;border:2px solid #e0e0e0;border-radius:8px;font-size:14px;outline:none;transition:all 0.2s}
+    input:focus,select:focus{border-color:#0f3460;box-shadow:0 0 0 3px rgba(15,52,96,0.08)}
+    .form-group{margin-bottom:14px}
+    .form-group label{display:block;font-size:13px;color:#555;margin-bottom:5px;font-weight:500}
+    .btn{display:inline-block;padding:10px 22px;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.2s}
+    .btn-primary{background:#0f3460;color:#fff}
+    .btn-primary:hover{background:#1a1a4e}
+    .btn-success{background:#28a745;color:#fff}
+    .btn-success:hover{background:#218838}
+    .btn-secondary{background:#e0e0e0;color:#333;margin-right:10px}
+    .btn-danger{background:#dc3545;color:#fff}
+    .msg{display:none;padding:10px 14px;border-radius:8px;margin-top:10px;font-size:13px}
+    .msg-success{background:#d4edda;color:#155724}
+    .msg-error{background:#f8d7da;color:#721c24}
+    table{width:100%;border-collapse:collapse;font-size:13px;min-width:700px}
+    th,td{padding:8px 6px;text-align:center;border-bottom:1px solid #eee}
+    th{background:#f0f2f5;color:#1a1a2e;font-weight:600;position:sticky;top:0}
+    td input{width:65px;padding:5px;text-align:center;font-size:13px}
+    .changed{background:#fff3cd!important;border-color:#ffc107!important}
+    .table-wrap{overflow-x:auto;max-height:60vh;overflow-y:auto}
+    .badge{display:inline-block;padding:3px 8px;border-radius:10px;font-size:11px;margin:1px}
+    .badge-weekly{background:#ffeeba;color:#856404}
+    .badge-occasional{background:#cce5ff;color:#004085}
+    .hidden{display:none}
+    .search-box{margin-bottom:14px}
+    .search-results{max-height:200px;overflow-y:auto;border:1px solid #e0e0e0;border-radius:8px;margin-top:4px}
+    .search-item{padding:10px 14px;cursor:pointer;border-bottom:1px solid #f0f0f0;font-size:13px}
+    .search-item:hover{background:#f0f2f5}
+    @media(max-width:600px){
+      .header h2{font-size:16px}
+      .grid{grid-template-columns:1fr 1fr}
+    }
+  </style>
 </head>
 <body>
-  <h1>系统运行正常</h1>
-  <p>如果你看到这行字，说明部署成功。</p>
+<div id="app"></div>
+
+<script>
+// ==================== 全局配置 ====================
+const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQhBZhiK2aakbHCd1p8_rhuxPy-pxJ5LXnRZaxGUfeax8fZT_uQvViIzUUd0K78fHd_ZqaxWLgN7o-q/pub?output=csv';
+const SHEET_BASE = 'https://docs.google.com/spreadsheets/d/1wtsvx9JEcbSh7LiqQwKgOCwVk2OlBOv24PxW4KzTWbk';
+const APPSCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxWYOUR_SCRIPT_ID/exec';
+
+// 数据缓存
+let allData = { teachers:[], students:[], groupActs:[], dutyActs:[], scoreItems:[], logs:[] };
+let currentUser = null;
+
+// ==================== 解析CSV ====================
+function parseCSV(csv){
+  const rows = [];
+  let current = '';
+  let inQuotes = false;
+  for(let c of csv){
+    if(c === '"'){ inQuotes = !inQuotes; continue; }
+    if(c === ',' && !inQuotes){ current = current.trim(); rows.push(current); current = ''; continue; }
+    if(c === '\n' && !inQuotes){ current = current.trim(); rows.push(current); current = ''; continue; }
+    if(c === '\r') continue;
+    current += c;
+  }
+  if(current.trim()) rows.push(current.trim());
+  return rows;
+}
+
+function loadAllData(callback){
+  fetch(SHEET_CSV_URL + '&gid=0')
+    .then(r => r.text())
+    .then(csv => {
+      // 尝试加载所有sheet（通过不同gid）
+      // 由于单个CSV只能获取第一个sheet，这里使用简化的数据结构
+      // 实际使用时需要加载多个gid
+      callback(true);
+    })
+    .catch(e => {
+      console.error('加载失败:', e);
+      callback(false);
+    });
+}
+
+// ==================== 模拟数据（实际使用时替换为API调用） ====================
+function getTeachers(){
+  return [
+    {id:'T01',password:'1234',name:'李老师',group:'联课团'},
+    {id:'T02',password:'5678',name:'王老师',group:'体育团'},
+  ];
+}
+
+function getStudents(){
+  return [
+    {id:'S001',name:'谢方怡',engName:'Xie Fangyi',className:'联课',position:'主席',fullPinyin:'xiefangyi',firstPinyin:'xfy',engFirst:'xfy',weeklyDuty:true,occasionalDuty:false},
+    {id:'S002',name:'陈妍心',engName:'Chen Yanxin',className:'联课',position:'会员',fullPinyin:'chenyanxin',firstPinyin:'cyx',engFirst:'cyx',weeklyDuty:false,occasionalDuty:true},
+  ];
+}
+
+function getScoreItems(){
+  return [
+    {name:'参与率',max:30},
+    {name:'团内活动参与表现',max:30},
+    {name:'仪容',max:15},
+    {name:'执委',max:10},
+    {name:'年资',max:15},
+  ];
+}
+
+// ==================== 渲染引擎 ====================
+function render(html){ document.getElementById('app').innerHTML = html; }
+
+// ==================== 登录页 ====================
+function showLogin(msg=''){
+  render(`
+    <div style="display:flex;justify-content:center;align-items:center;min-height:100vh;background:linear-gradient(135deg,#1a1a2e,#0f3460);padding:20px">
+      <div class="card" style="width:100%;max-width:380px">
+        <h3 style="text-align:center">📋 执事团评分系统</h3>
+        <p style="text-align:center;color:#888;margin-bottom:16px">请输入编号和密码</p>
+        <div class="form-group"><label>编号</label><input type="text" id="loginId" placeholder="请输入编号"></div>
+        <div class="form-group"><label>密码</label><input type="password" id="loginPw" placeholder="请输入密码"></div>
+        <button class="btn btn-primary" style="width:100%" onclick="doLogin()">登 录</button>
+        <div class="msg msg-error" id="loginErr">${msg}</div>
+      </div>
+    </div>
+  `);
+  if(msg) document.getElementById('loginErr').style.display = 'block';
+  document.addEventListener('keydown',function(e){ if(e.key==='Enter') doLogin(); });
+}
+
+function doLogin(){
+  const id = document.getElementById('loginId').value.trim();
+  const pw = document.getElementById('loginPw').value.trim();
+  if(!id||!pw){ showLogin('请输入编号和密码'); return; }
+  const teachers = getTeachers();
+  const teacher = teachers.find(t => t.id === id && t.password === pw);
+  if(teacher){
+    currentUser = teacher;
+    showDashboard();
+  } else {
+    showLogin('编号或密码错误');
+  }
+}
+
+// ==================== 控制面板 ====================
+function showDashboard(){
+  render(`
+    <div class="header">
+      <div><h2>📋 执事团评分系统</h2><span>欢迎，${currentUser.name}（${currentUser.id}）</span></div>
+      <div><span style="margin-right:12px">🏫 ${currentUser.group}</span><button onclick="logout()">退出</button></div>
+    </div>
+    <div class="container">
+      <div class="grid">
+        <div class="menu-item" onclick="showNewActivity()"><div class="icon">➕</div><div class="label">添加活动评分表</div></div>
+        <div class="menu-item" onclick="showActivityList()"><div class="icon">📝</div><div class="label">活动评分表记录</div></div>
+        <div class="menu-item" onclick="showTotalScore()"><div class="icon">📊</div><div class="label">查看总评分表</div></div>
+        <div class="menu-item" onclick="alert('执委分管理即将上线')"><div class="icon">⭐</div><div class="label">执委分/年资分</div></div>
+        <div class="menu-item" onclick="alert('学期设置即将上线')"><div class="icon">📅</div><div class="label">学期设置</div></div>
+      </div>
+      <div class="card">
+        <h3>📋 最近活动</h3>
+        <p style="color:#999">暂无活动评分表</p>
+      </div>
+    </div>
+  `);
+}
+
+function logout(){
+  currentUser = null;
+  showLogin();
+}
+
+// ==================== 添加活动 ====================
+function showNewActivity(){
+  render(`
+    <div class="header">
+      <button onclick="showDashboard()">← 返回</button>
+      <h3>添加活动评分表</h3><div></div>
+    </div>
+    <div class="container">
+      <div class="card">
+        <div class="form-group"><label>活动类型</label><select id="actType" onchange="toggleType()"><option value="团体">团体活动</option><option value="值岗">值岗</option></select></div>
+        <div class="form-group"><label>活动名称</label><input type="text" id="actName" placeholder="例：演讲比赛"></div>
+        <div class="form-group"><label>活动日期</label><input type="date" id="actDate"></div>
+        <div class="form-group hidden" id="dutyGroupDiv"><label>值岗组别</label><select id="dutyGroup"><option value="">请选择</option><option value="行政组">行政组</option><option value="总务组">总务组</option></select></div>
+        <button class="btn btn-primary" onclick="createActivity()">创建评分表</button>
+        <div class="msg msg-success" id="successMsg"></div>
+        <div class="msg msg-error" id="errorMsg"></div>
+      </div>
+    </div>
+  `);
+}
+
+function toggleType(){
+  const type = document.getElementById('actType').value;
+  document.getElementById('dutyGroupDiv').classList.toggle('hidden', type !== '值岗');
+}
+
+function createActivity(){
+  const name = document.getElementById('actName').value.trim();
+  const date = document.getElementById('actDate').value;
+  const type = document.getElementById('actType').value;
+  if(!name) return showMsg('error','请输入活动名称');
+  if(!date) return showMsg('error','请选择日期');
+  if(type==='值岗' && !document.getElementById('dutyGroup').value) return showMsg('error','请选择值岗组别');
+  showMsg('success','活动创建成功！(演示模式)');
+  setTimeout(() => showDashboard(), 1500);
+}
+
+function showMsg(type,text){
+  const el = document.getElementById(type+'Msg');
+  if(!el) return;
+  el.textContent = text;
+  el.style.display = 'block';
+  setTimeout(()=>{el.style.display='none'},2000);
+}
+
+// ==================== 活动列表 ====================
+function showActivityList(){
+  render(`
+    <div class="header">
+      <button onclick="showDashboard()">← 返回</button>
+      <h3>活动评分表记录</h3><div></div>
+    </div>
+    <div class="container">
+      <div class="card"><p style="color:#999">暂无活动评分表</p></div>
+    </div>
+  `);
+}
+
+// ==================== 总评分 ====================
+function showTotalScore(){
+  const students = getStudents();
+  const items = getScoreItems();
+  let html = `
+    <div class="header">
+      <button onclick="showDashboard()">← 返回</button>
+      <h3>📊 总评分表 - ${currentUser.group}</h3><div></div>
+    </div>
+    <div class="container">
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>学号</th><th>姓名</th><th>班级</th><th>职位</th>`;
+  items.forEach(i => { html += `<th>${i.name}(${i.max})</th>`; });
+  html += `<th>值岗</th></tr></thead><tbody>`;
+  
+  students.forEach(s => {
+    html += `<tr><td>${s.id}</td><td>${s.name}</td><td>${s.className}</td><td>${s.position}</td>`;
+    items.forEach(() => { html += `<td>-</td>`; });
+    let badges = '';
+    if(s.weeklyDuty) badges += '<span class="badge badge-weekly">每周值岗</span>';
+    if(s.occasionalDuty) badges += '<span class="badge badge-occasional">偶尔值岗</span>';
+    html += `<td>${badges||'-'}</td></tr>`;
+  });
+  
+  html += `</tbody></table></div></div></div>`;
+  render(html);
+}
+
+// ==================== 启动 ====================
+showLogin();
+</script>
 </body>
 </html>
